@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
     Mat m1 = Mat::ones(4,3,CV_8S);
     m1.at<char>(1,1)=-4;
     cout<<m1<<std::flush<<endl;
+    cout<<cv::abs(m1);
     cout<<std::flush;
     cout<<std::flush;
     cout<<std::flush;
