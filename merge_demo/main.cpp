@@ -26,6 +26,12 @@ int main(int argc, char *argv[])
     cout<<src1.channels()<<"----"<<src1.type()<<endl;
     cout<<dst.channels()<<"----"<<dst.type()<<endl;
     imshow("merge demo",dst);
+    //! mul demo.
+    src1 = src1.mul(src2);
+    imshow("mul demo",src1);
+    //! not demo
+    src2=~src2;
+    imshow("not demo",src2);
     waitKey(0);
     return 0;
 }
