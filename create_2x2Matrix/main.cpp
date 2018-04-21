@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     imshow("area in Mat",_src);
     /**
      * to do : create a 2D Matrix(800*800) that have 1 channels.
-     *          use ROI and set() function create a pyramid
+     *             use ROI and set() function create a pyramid.
      * @return
      */
     Mat roi_src;
