@@ -10,6 +10,8 @@ using namespace cv;
 void mat_open(Mat &src,Mat &dst);
 void mat_close(Mat &src,Mat &dst);
 void mat_morphological_radient(Mat &src,Mat &dst);
+void top_hat(Mat &src,Mat &dst);
+void black_hat(Mat &src,Mat &dst);
 
 
 int main(int argc, char *argv[])
@@ -31,12 +33,23 @@ int main(int argc, char *argv[])
     imshow("dst_close demo",dst_close);
 
     Mat src_gradient;
-    src_gradient = imread("../data/advanced_morphology_gradient.png");
+//    src_gradient = imread("../data/advanced_morphology_gradient.png");
     Mat dst_gradient;
-    mat_close(src_gradient,dst_gradient);
+    mat_morphological_radient(src_open,dst_gradient);
     imshow("dst_gradient demo",dst_gradient);
 
+    Mat dst_topHat;
+    Mat src_tophat;
+    src_tophat = imread("../data/test1.jpg");
+    top_hat(src_tophat,dst_topHat);
+    imshow("dst top_hat",dst_topHat);
 
+
+    Mat dst_blackhat;
+//    black_hat(src_tophat,dst_blackhat);
+    black_hat(src_open,dst_blackhat);
+
+    imshow("dst black hat",dst_blackhat);
     waitKey(0);
     return 0;
 }
@@ -62,7 +75,21 @@ void mat_morphological_radient(Mat &src,Mat &dst)
 {
     Mat element = getStructuringElement(MORPH_RECT,Size(3,3));
     Mat dst1;
-    dilate(src,dst1,element);
     erode(src,dst,element);
-    dst=dst-dst1;
+    dilate(src,dst1,element);
+    dst=dst1-dst;
+}
+
+
+void top_hat(Mat &src,Mat &dst)
+{
+    mat_open(src,dst);
+    dst=src-dst;
+}
+
+
+void black_hat(Mat &src,Mat &dst)
+{
+    mat_close(src,dst);
+    dst = dst-src;
 }
