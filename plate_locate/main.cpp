@@ -5,8 +5,8 @@
 #include "opencv2/highgui.hpp"
 using namespace std;
 using namespace cv;
-#define DATA_PATH "D:\\Opensource workspace\\openCV\\workspace\\Tests\\data\\"
-//#define DATA_PATH "..\\data\\"
+//#define DATA_PATH "D:\\Opensource workspace\\openCV\\workspace\\Tests\\data\\"
+#define DATA_PATH "..\\data\\"
 
 int plateLocate(Mat src,vector<Mat> &resultVec);
 bool verifySizes(RotatedRect &minRect);
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     vector<Mat> result;
     plateLocate(src,result);
     for(int i=0;i<result.size();++i) {
-        imshow("result "+i,result[i]);
+        imshow("----result "+i,result[i]);
     }
     waitKey(0);
     return 0;
@@ -55,14 +55,14 @@ int plateLocate(Mat src,vector<Mat> &resultVec)
         //! save temp jpg
         stringstream ss(stringstream::in|stringstream::out);
         ss<<"tmp/debug_gauss.jpg";
-        imwrite(ss.str(),src_blur);
+       cout<< imwrite(ss.str(),src_blur)<<endl;
     }
     //! 2.转化为灰度图像.为边缘检测算法提供灰度化环境
     cvtColor(src_blur,src_gray,CV_RGB2GRAY);
     {
         stringstream ss(stringstream::in|stringstream::out);
         ss<<"tmp/debug_gray.jpg";
-        imwrite(ss.str(),src_gray);
+        cout<<imwrite(ss.str(),src_gray)<<endl;
     }
     //! sobel算子:检测图像中的垂直边缘,便于区分车牌
     Mat grad_x,grad_y;
@@ -76,7 +76,7 @@ int plateLocate(Mat src,vector<Mat> &resultVec)
     {
         stringstream ss(stringstream::in|stringstream::out);
         ss<<"tmp/debug_grad.jpg";
-        imwrite(ss.str(),grad);
+        cout<<imwrite(ss.str(),grad)<<endl;
     }
     //! 二值化:threshold.
     Mat img_threshold;
@@ -86,7 +86,7 @@ int plateLocate(Mat src,vector<Mat> &resultVec)
     {
         stringstream ss(stringstream::in|stringstream::out);
         ss<<"tmp/debug_threshold.jpg";
-        imwrite(ss.str(),img_threshold);
+        cout<<imwrite(ss.str(),img_threshold);
     }
     //! Size(): 影响定位
     Mat element = getStructuringElement(MORPH_RECT,Size(10,3));
@@ -95,7 +95,7 @@ int plateLocate(Mat src,vector<Mat> &resultVec)
     {
         stringstream ss(stringstream::in | stringstream::out);
         ss << "tmp/debug_morphology_close" << ".jpg";
-        imwrite(ss.str(), img_threshold);
+        cout<<imwrite(ss.str(), img_threshold)<<endl;
     }
     //! 发现轮廓
     vector<vector<Point>> contours;
@@ -110,7 +110,7 @@ int plateLocate(Mat src,vector<Mat> &resultVec)
                      1); // with a thickness of 1
         stringstream ss(stringstream::in | stringstream::out);
         ss << "tmp/debug_Contours" << ".jpg";
-        imwrite(ss.str(), result);
+       cout<< imwrite(ss.str(), result)<<endl;
     }
     vector<vector<Point>>::iterator itc = contours.begin();
     //! RotatedRect: 包含质心，边长，旋转角度
@@ -146,23 +146,44 @@ int plateLocate(Mat src,vector<Mat> &resultVec)
                 {
                     line(result,rect_points[j],rect_points[(j+1)%4],
                             Scalar(0,255,255),1,8);
+                    imshow("result line",result);
+                    waitKey(0);
                 }
             }
             float r=(float)minRect.size.width/(float)minRect.size.height;
             float angle = minRect.angle;
+            float t_angle=angle;
             Size rect_size = minRect.size;
+            Size t_rect_size = rect_size;
             if(r<1)
             {
                 angle += 90;
                 swap(rect_size.width,rect_size.height);
+                minRect.angle=angle;
+                minRect.size=rect_size;
+                Point2f rect_points[4];
+                minRect.points(rect_points);
+                for(int j=0;j<4;++j)
+                {
+                    line(result,rect_points[j],rect_points[(j+1)%4],
+                            Scalar(255,0,0),1,8);
+//                    imshow("result line",result);
+//                    waitKey(0);
+                }
             }
+            minRect.angle=t_angle;
+            minRect.size=t_rect_size;
             //! 如果抓取方块旋转超过m_angle角度，
             //! 则不是车牌，放弃处理
-            if(angle-60.0<0&&angle+60.0>0)
+            if(angle-15.0<0&&angle+15.0>0)
             {
                 Mat rotMat = getRotationMatrix2D(minRect.center,angle,1);
                 Mat img_rotated;
+//                imshow("src demo",src);
+//                waitKey(0);
                 warpAffine(src,img_rotated,rotMat,src.size(),CV_INTER_CUBIC);
+//                imshow("src img_rotated",img_rotated);
+//                waitKey(0);
                 Mat resultMat;
                 resultMat = showResultMat(img_rotated,
                                                         rect_size,minRect.center,
@@ -171,15 +192,23 @@ int plateLocate(Mat src,vector<Mat> &resultVec)
             }
         }
     }
-
     {
         stringstream ss(stringstream::in | stringstream::out);
         ss << "tmp/debug_result" << ".jpg";
-        imwrite(ss.str(), result);
+       cout<< imwrite(ss.str(), result)<<endl;
     }
-
 }
 
+
+//!
+//! \brief verifySizes
+//! \param minRect
+//! \return
+//! 1.设立一个偏差率error，根据这个偏差率计算最大和最小的宽高比rmax、rmin。
+//! 判断矩形的r是否满足在rmax、rmin之间。
+//! 2.设定一个面积最大值max与面积最小值min。
+//! 判断矩形的面积area是否满足在max与min之间。
+//!
 bool verifySizes(RotatedRect &minRect)
 {
     float error = 0.9f;
@@ -216,7 +245,7 @@ Mat showResultMat(Mat src,
     {
         stringstream ss(stringstream::in | stringstream::out);
         ss << "tmp/debug_crop_" <<index<< ".jpg";
-        imwrite(ss.str(), img_crop);
+        cout<<imwrite(ss.str(), img_crop)<<endl;
     }
     Mat resultResized;
     resultResized.create(36,136,CV_32FC3);
@@ -224,7 +253,7 @@ Mat showResultMat(Mat src,
     {
         stringstream ss(stringstream::in | stringstream::out);
         ss << "tmp/debug_resize_" <<index<< ".jpg";
-        imwrite(ss.str(), resultResized);
+        cout<<imwrite(ss.str(), resultResized)<<endl;
     }
     return resultResized;
 }
