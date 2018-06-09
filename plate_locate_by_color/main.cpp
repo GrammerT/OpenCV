@@ -103,7 +103,11 @@ Mat colorMatch(const Mat &src,Mat &match,const Color r,const bool adaptive_minsv
     split(src_hsv,hsvSplit);
     for(int i=0;i<hsvSplit.size();++i)
     {
-
+        imshow("hsvSplit",hsvSplit[i]);
+        waitKey(0);
     }
+
+    equalizeHist(hsvSplit[2],hsvSplit[2]);
+    merge(hsvSplit,src_hsv);
 
 }
